@@ -6,8 +6,7 @@ import br.com.wepdev.authuser.enums.UserType;
 import br.com.wepdev.authuser.model.UserModel;
 import br.com.wepdev.authuser.service.UserService;
 import com.fasterxml.jackson.annotation.JsonView;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,13 +17,11 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
+@Log4j2 // Adicionando logger 4j 2 do lombok
 @RestController
 @RequestMapping("/auth")
 @CrossOrigin(origins = "*", maxAge = 3600)// Permite que todos os endpoints desse controller sejam acessados de qq lugar
 public class AuthenticationController {
-
-    // Adicionando logger na classe
-    Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
 
     @Autowired
     UserService userService;
@@ -33,10 +30,13 @@ public class AuthenticationController {
     public ResponseEntity<Object> registerUser(@RequestBody @Validated(UserDTO.UserView.RegistrationPost.class)
                                                    @JsonView(UserDTO.UserView.RegistrationPost.class) UserDTO userDTO){
 
+        log.debug("POST registerUser : {}", userDTO);
         if(userService.existsByUsername(userDTO.getUsername())){
+            log.warn("Username {} is Already Taken ", userDTO.getUsername());
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Error: Username is Already Taken!");
         }
         if(userService.existsByEmail(userDTO.getEmail())){
+            log.warn("Email {} is Already Taken ", userDTO.getEmail());
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Error: email is Already Taken!");
         }
         var userModel = new UserModel();
@@ -47,6 +47,8 @@ public class AuthenticationController {
         userModel.setLastUpdateDate(LocalDateTime.now(ZoneId.of("UTC")));
         userService.save(userModel);
 
+        log.debug("POST registerUser userModel saved : {}", userModel.toString());
+        log.info("User saved  successfully userId : {}", userModel.getUserId());
        return ResponseEntity.status(HttpStatus.CREATED).body(userModel);
     }
 
@@ -56,11 +58,11 @@ public class AuthenticationController {
 
         // Trabalhando com os niveis de LOG
 
-        logger.trace("TRACE"); // Para vizualizar mais de forma granular(detalhado)
-        logger.debug("DEBUG"); // Utilizado em modo de DEV para trazer infos mais detalhadas como metedos
-        logger.info("INFO"); // Utilizado mais em PROD, para trazer informacoes do que esta acontecendo
-        logger.warn("WARN");  // Logo que mostra um detalhado alerta
-        logger.error("ERROR"); // E quando algo da errado no sistema e ter um controle do que esta acontecendo, usando dentro de um Try Catch
+        log.trace("TRACE"); // Para vizualizar mais de forma granular(detalhado)
+        log.debug("DEBUG"); // Utilizado em modo de DEV para trazer infos mais detalhadas como metedos
+        log.info("INFO"); // Utilizado mais em PROD, para trazer informacoes do que esta acontecendo
+        log.warn("WARN");  // Logo que mostra um detalhado alerta
+        log.error("ERROR"); // E quando algo da errado no sistema e ter um controle do que esta acontecendo, usando dentro de um Try Catch
         return "Logging Spring Boot...";
     }
 }

@@ -5,6 +5,7 @@ import br.com.wepdev.authuser.model.UserModel;
 import br.com.wepdev.authuser.service.UserService;
 import br.com.wepdev.authuser.specifications.SpecificationTemplate;
 import com.fasterxml.jackson.annotation.JsonView;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +24,7 @@ import java.time.ZoneId;
 import java.util.Optional;
 import java.util.UUID;
 
+@Log4j2
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)// Permite que todos os endpoints desse controller sejam acessados de qq lugar
 @RequestMapping("/users")
@@ -60,11 +62,14 @@ public class UserController {
 
     @DeleteMapping("/{userId}")
     public ResponseEntity<Object> deleteUser(@PathVariable(value = "userId") UUID userId){
+        log.debug("DELETE deleteUser userId received : {}", userId);
         Optional<UserModel> userModelOptional = userService.findById(userId);
         if (userModelOptional.isEmpty()){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not founf!");
         } else {
             userService.delete(userModelOptional.get());
+            log.debug("DELETE deleteUser userId saved : {}", userId);
+            log.info("User deleted successfully userId : {}", userId);
             return ResponseEntity.status(HttpStatus.OK).body("User deleted success!");
         }
     }
@@ -74,6 +79,7 @@ public class UserController {
     public ResponseEntity<Object> updateUser(@PathVariable(value = "userId") UUID userId, @RequestBody
                                              @Validated(UserDTO.UserView.UserPut.class)
                                              @JsonView(UserDTO.UserView.UserPut.class) UserDTO userDTO){
+        log.debug("PUT Updating userDto received : {}", userDTO.toString());
         Optional<UserModel> userModelOptional = userService.findById(userId);
         if (userModelOptional.isEmpty()){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not founf!");
@@ -84,6 +90,8 @@ public class UserController {
             userModel.setCpf(userDTO.getCpf());
             userModel.setLastUpdateDate(LocalDateTime.now(ZoneId.of("UTC")));
             userService.save(userModel);
+            log.debug("PUT updateUser userModel saved : {}", userModel.toString());
+            log.info("User updated successfully userId : {}", userModel.getUserId());
 
             return ResponseEntity.status(HttpStatus.OK).body(userModel);
         }
@@ -96,9 +104,10 @@ public class UserController {
                                              @JsonView(UserDTO.UserView.PasswordPut.class) UserDTO userDTO){
         Optional<UserModel> userModelOptional = userService.findById(userId);
         if (userModelOptional.isEmpty()){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not founf!");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found!");
         }
         if(!userModelOptional.get().getPassword().equals(userDTO.getOldPassword())){
+            log.warn("Mismatched old password userId {}", userDTO.getUserId());
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Error: Mismatched old password!");
         } else {
             var userModel = userModelOptional.get();
