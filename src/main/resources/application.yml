@@ -15,3 +15,14 @@ spring:
     properties:
       hibernate:
         show_sql: true
+  output:
+    ansi:
+      enabled: always
+
+#Configurando o nivel de log que sera exibido no console quando a aplicação for iniciada e utilizada
+logging:
+  level:
+    br.com.wepdev.authuser: TRACE
+    root: info
+    org.springframework.web: DEBUG
+    org.hibernate: info
