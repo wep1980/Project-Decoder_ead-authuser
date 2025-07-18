@@ -65,10 +65,10 @@ public class UserController {
         log.debug("DELETE deleteUser userId received : {}", userId);
         Optional<UserModel> userModelOptional = userService.findById(userId);
         if (userModelOptional.isEmpty()){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not founf!");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found!");
         } else {
             userService.delete(userModelOptional.get());
-            log.debug("DELETE deleteUser userId saved : {}", userId);
+            log.debug("DELETE deleteUser userModel userId : {}", userId);
             log.info("User deleted successfully userId : {}", userId);
             return ResponseEntity.status(HttpStatus.OK).body("User deleted success!");
         }
@@ -90,7 +90,7 @@ public class UserController {
             userModel.setCpf(userDTO.getCpf());
             userModel.setLastUpdateDate(LocalDateTime.now(ZoneId.of("UTC")));
             userService.save(userModel);
-            log.debug("PUT updateUser userModel saved : {}", userModel.toString());
+            log.debug("PUT updateUser userId saved  : {}", userModel.getUserId());
             log.info("User updated successfully userId : {}", userModel.getUserId());
 
             return ResponseEntity.status(HttpStatus.OK).body(userModel);
